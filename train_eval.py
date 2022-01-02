@@ -3,7 +3,9 @@ from collections import deque
 import datetime
 import json
 import os
+from pathlib import Path
 from typing import NamedTuple
+import time
 
 import numpy as np
 
@@ -64,6 +66,8 @@ def train_eval(
         epsilon_decay : float            = DEFAULT_EPSILON_DECAY_FACTOR,
         experience_buffer : int          = DEFAULT_EXPERIENCE_BUFFER,
         do_not_save:bool                 = False,
+        load_model:bool                  = False,
+        visual:bool                      = False,
 ) -> dict:
 
     """
@@ -116,9 +120,15 @@ def train_eval(
     # for now, assume models homogeneous
     brain_key = list(all_brain_info.keys())[0]
 
-    state_size = env.brains[brain_key].vector_observation_space_size
+    env_info = env.brains[brain_key]
 
-    action_size = env.brains[brain_key].vector_action_space_size
+    # 2 agents
+    state_shape = all_brain_info[brain_key].vector_observations.shape
+    state_size = state_shape[0] * state_shape[1]
+
+    # 2 agents
+    action_size = env_info.vector_action_space_size * 2
+  
 
     TRAINING_PARAMS["EXPERIENCE_BUFFER"] = experience_buffer
 
@@ -128,6 +138,10 @@ def train_eval(
         action_size,
         TRAINING_PARAMS
     )
+
+    if load_model:
+        TRAINING_PARAMS["MODE"] = "EVAL"
+        model.load()
 
     # for each brain in the environment: 
     #   store them off so we can access them by name later
@@ -158,6 +172,8 @@ def train_eval(
         # timesteps
         for t in range(max_timesteps):
 
+            if visual: time.sleep(0.005)
+
             # dictionary of brain_name to action for this timestep
             step_actions = { }
 
@@ -167,17 +183,17 @@ def train_eval(
 
                     # store the chosen action for each brain in the step_actions dictionary
                     action = agent_dict[brain_name].agent.act(
-                        all_brain_info[brain_name].vector_observations[0],
+                        all_brain_info[brain_name].vector_observations.reshape(state_size, 1),
                         epsilon
                     )
 
-                    step_actions[brain_name] = action
+                    step_actions[brain_name] = action.reshape(2, int(action_size/2))
 
-                    assert action.shape[1] == action_size
+                    #assert action.shape[1] == action_size
 
                 # else, no action taken for done agants, seems like None is ok in many cases
                 else:
-                    print("act done")
+                    pass #print("act done")
 
 
             # step the environment for all agents
@@ -191,17 +207,18 @@ def train_eval(
                     # update agents that were done at the beggining of this timestep
                     if not all_brain_info[brain_name].local_done[0]:
 
-                        reward = next_all_brain_info[brain_name].rewards[0]
+                        reward = np.max(next_all_brain_info[brain_name].rewards)
 
                         step_score_window.append(reward)
 
                         agent_dict[brain_name].agent.step(
-                            all_brain_info[brain_name].vector_observations[0], # state
+                            all_brain_info[brain_name].vector_observations.reshape(state_size,), # state
                             step_actions[brain_name], # action
-                            next_all_brain_info[brain_name].rewards[0], # reward
-                            next_all_brain_info[brain_name].vector_observations[0], # next state
+                            reward, # reward
+                            next_all_brain_info[brain_name].vector_observations.reshape(state_size,), # next state
                             next_all_brain_info[brain_name].local_done[0], # done
                         )
+
 
                     else:
                         print("step done")
@@ -274,7 +291,8 @@ def train_eval(
         # add a few more episodes to this, 150 instead of 100
         if consecutive >= score_window_episodes:
             print(f'\nEnvironment solved in {solved_episode} episodes!\tAverage Score: {np.mean(scores_window):.2f}')
-            model.save()
+            if not do_not_save:
+                model.save()
             break
     print("")
 
@@ -293,11 +311,11 @@ def main(
     epsilon_start: float              = DEFAULT_EPSILON_START,
     epsilon_end: float                = DEFAULT_EPSILON_END,
     epsilon_decay: float              = DEFAULT_EPSILON_DECAY_FACTOR,
-    multi_agent: bool                 = DEFAULT_MULTI_AGENT,
     experience_buffer: int            = DEFAULT_EXPERIENCE_BUFFER,
     model_name: str                   = "model",
     do_not_save:bool                  = False,
     visual:bool                       = False,
+    load_model:bool                   = False,
 ) -> None:
     """
     Outerloop for training function. 
@@ -305,14 +323,15 @@ def main(
     Access the environment from disk
     """
 
-    if multi_agent and not visual:
-        ENV_NAME = '/data/Reacher_Linux_NoVis/Reacher.x86_64'
-    elif not multi_agent and not visual:
-        ENV_NAME = '/data/Reacher_One_Linux_NoVis/Reacher.x86_64'
-    elif multi_agent and visual:
-        ENV_NAME = '/data/Reacher_Linux/Reacher.x86_64'
-    elif not multi_agent and visual:
-        ENV_NAME = '/data/Reacher_One_Linux/Reacher.x86_64'
+    if visual:
+        ENV_NAME = 'data/Tennis_Linux/Tennis.x86_64'
+    else:
+        ENV_NAME = 'data/Tennis_Linux_NoVis/Tennis.x86_64'
+
+    if "DATA_PATH" in os.environ:
+        ENV_NAME = str(Path(os.environ["DATA_PATH"])/Path(ENV_NAME))
+    else:
+        ENV_NAME = str(Path("/")/Path(ENV_NAME))
 
     env = UnityEnvironment(file_name=ENV_NAME)
 
@@ -327,6 +346,8 @@ def main(
         epsilon_decay=epsilon_decay,
         experience_buffer=experience_buffer,
         do_not_save=do_not_save,
+        load_model=load_model,
+        visual=visual,
     )
 
     if not do_not_save:
@@ -439,15 +460,6 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '-m',
-        '--multi-agent',
-        help= 'Optional parameter to enable multi-agent training ' + \
-             f'defaults to {DEFAULT_MULTI_AGENT}',
-        default=DEFAULT_MULTI_AGENT,
-        type=bool
-    )
-
-    parser.add_argument(
         '-x',
         '--do-not-save',
         help='If set, model artifacts, such as the model weights and images will not be saved',
@@ -463,6 +475,14 @@ if __name__ == '__main__':
         default=False,
     )
 
+    parser.add_argument(
+        '-l',
+        '--load_model',
+        help='Load the model from disk',
+        action='store_true',
+        default=False
+    )
+
     args = parser.parse_args()
 
     main(
@@ -474,7 +494,7 @@ if __name__ == '__main__':
         epsilon_end=args.epsilon_end,
         epsilon_decay=args.epsilon_decay,
         experience_buffer=args.experience_buffer,
-        multi_agent=args.multi_agent,
         do_not_save=args.do_not_save,
         visual=args.visual,
+        load_model=args.load_model,
     )

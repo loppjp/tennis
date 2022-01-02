@@ -5,6 +5,10 @@
 
 The agent algorithm implemented here was Twin Delayed Deep Deterministic policy gradient algorithm (TD3). This algorithm features neural networks as function approximators. One function approximator acts as the agent's policy; selecting the action parameters each timestep. The other function approximator is responsible for estimating the value of a state-action combination. TD3 is typically used for continuous action spaces, where the agent provides real valued (as opposed to discrete) actions to the environment. It is a policy gradient based agent that is attempting to maximize performance of its policy. The state-action function, typically refered to as the "critic" evaluates the 
 
+### Feature: Multi Agent
+
+In order to accomplish multi agent learning, the agents in the environment state observations were "rolled" into a single state vector. This vector was then used to train a single RL model. The action space was output in such a way that actions could be distributed to the agents playing the match.
+
 ### Feature: Exploration Noise
 
 Another feature of the TD3 algorithm is noise that is applied to the action before the agent interacts with the environment. This noise is a non-deterministic way for the agent to explore the action space. The policy neural network is trained to always select the best action for a given state. The noise modifies this action. As training progresses, the noise is reduced. It is typical to leave some noise in the action, to help with any non-stationarity of the environment. The noise is normally distributed around mean zero with standard deviation set as a hyperparameter. Noise is clipped to ensure values remain within the environment's action space. The TD3 paper refers to this noise as exploration noise.
@@ -25,6 +29,7 @@ For more details, see the paper where TD3 was introduced here: [https://arxiv.or
 </br>
 
 ## Neural Network
+
 </br>
 
 Multiple neural networks are used in the policy function and the state-action value estimator function. In all cases, the network architectures used two hidden layers each with 256 nodes. Unless otherwise noted, internal activation functions were standard rectified linear units (ReLUs). Standard regularization, weight initialization, no dropout, or batch normalization was used. 
@@ -58,15 +63,16 @@ Most hyper parameters were derived from those that could be found in Miguel Mora
 
 
 ## Other Parameters
-* Timesteps per Episode: 1000
+* Timesteps per Episode: 1,000
+* Default number of Episodes: 1,000,000
 
 
-![Score vs Episode](./model_window_agent_07072021_052403.png)
+![Score vs Episode](./scores.png)
 
 
 ## Solution
 
-The Goal for this agent is to maintain an episodic reward of greater than positive 30 for a window of 100 consecutive episodes. The environment is said to be solved with respect to the episode marking the start of the 100 episode window.
+The Goal for this agent is to maintain an episodic reward of greater than positive 0.5 for a window of 100 consecutive episodes. The environment is said to be solved with respect to the episode marking the start of the 100 episode window.
 
 With the current seed and hyperparameters, the most recent model.pth learns to solve the task in 143 episodes. See the above plot to see the window of episodes where the 100-episode rolling average score surpassed 30.0.
 

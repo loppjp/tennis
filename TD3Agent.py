@@ -316,7 +316,6 @@ class Model:
         torch.save(self.policy_net_online.state_dict(), policy_net_name)
         torch.save(self.state_value_net_online.state_dict(), state_value_net_name)
 
-
     def load(
             self,
             policy_net:Path='policy_model.pth',
@@ -325,13 +324,11 @@ class Model:
         """
         Load model weights from disk
         """
-        with open(policy_net, 'r') as f:
-            self.policy_net_online = torch.load(f)
-            self.policy_net_train = torch.load(f)
+        self.policy_net_online.load_state_dict(torch.load(policy_net))
+        self.policy_net_train.load_state_dict(torch.load(policy_net))
 
-        with open(state_value_net, 'r') as f:
-            self.state_value_net_online = torch.load(f)
-            self.state_value_net_train = torch.load(f)
+        self.state_value_net_online.load_state_dict(torch.load(state_value_net))
+        self.state_value_net_train.load_state_dict(torch.load(state_value_net))
 
 
 def sum_data(tensor):

@@ -1,16 +1,21 @@
-# Ball/Target Reaching Reinforcement Learning Agent
+# Tennis Reinforcement Learning Agent
 
 This repository contains a pytorch based implementation of a policy gradient
-agent that can be trained to solve a ball/target reaching task in an [ml-agents](https://github.com/Unity-Technologies/ml-agents/blob/main/docs/Learning-Environment-Examples.md) like
+agent that can be trained to solve a tennis task [ml-agents](https://github.com/Unity-Technologies/ml-agents/blob/main/docs/Learning-Environment-Examples.md) like
 environment.
 
+</br>
+
+![Agent GIF](./Tennis.gif)
+
+</br>
 
 </br>
 
 ## Project Details:
 
 </br>
-In this environment, the agent is a simulated robot arm tasked with following a spherical ball around in a circle. In a given episode the ball can be traveling at a different speed.
+In this environment, two tennis playing agents 
 </br>
 
 ### Agent State Space:
@@ -19,8 +24,6 @@ The reaching agent must provide a set of 4 real valued actions to the environmen
 </br>
 0: torque joint 1 direction 1 </br>
 1: torque joint 1 direction 2 </br>
-2: torque joint 2 direction 1</br>
-3: torque joint 2 direction 2</br>
 </br>
 
 ### Agent Observaton Space:
@@ -106,3 +109,5 @@ python -m train
 
 ### Results
 * After train is run, a file called scores.csv is written to disk with information about how the training proceeded
+* The policy and state value models are saved to .pth file with their respective names. Examples are in the repo
+* You can use plot.ipynb to plot the graph using the scores.csv file
