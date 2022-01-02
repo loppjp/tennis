@@ -15,26 +15,25 @@ environment.
 ## Project Details:
 
 </br>
-In this environment, two tennis playing agents 
+In this environment, two tennis playing agents attempt to maximize the amount of times they can hit the ball over the net without dropping it or hitting it the wrong way
 </br>
 
 ### Agent State Space:
 </br>
-The reaching agent must provide a set of 4 real valued actions to the environment
+The reaching agent must provide a set of 2 real valued actions to the environment
 </br>
-0: torque joint 1 direction 1 </br>
-1: torque joint 1 direction 2 </br>
+0: movement left and right </br>
+1: vertical movement </br>
 </br>
 
 ### Agent Observaton Space:
 </br>
-The reacher agent is able to observe an a state vector from the environment composed of 33 elements.
-The observation space consists of 33 variables corresponding to position, rotation, velocity, and angular velocities of the arm
+The observation space consists of 8 variables corresponding to the position and velocity of the ball and racket. This is repeated 3 times to provide different reference frames for the agents.
 </br>
 </br>
 ### Agent Reward Structure and Solution
 </br>
-The agent receives a reward of +0.1 for its "hand" joint being in the proper location for a given timestep
+The agent receives a reward of +0.1 for hitting the ball over the net with the racket. -0.01 ponits are applied for letting the ball hit the surface or going out of play
 </br>
 </br>
 
@@ -81,15 +80,15 @@ The agent receives a reward of +0.1 for its "hand" joint being in the proper loc
 
 3) Download the standalone Unity based training environment for your use case:
 
-    * [Linux, with visuals](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Reacher/one_agent/Reacher_Linux.zip)
-    * [Linux, headless, for training](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Reacher/one_agent/Reacher_Linux_NoVis.zip)
+    * [Linux, with visuals](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux.zip)
+    * [Linux, headless, for training](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux_NoVis)
 
     Be sure to unzip each. There are others available on that server for Windows
 
     Note, the software in this repository expects these Unity environments to be unzipped to a mounted directory called data. E.g.:
     ```
-    /data/Reacher_Linux
-    /data/Reacher_Linux_NoVis
+    /data/Tennis_Linux
+    /data/Tennis_Linux_NoVis
     ```
 
 ## Agent Training:
