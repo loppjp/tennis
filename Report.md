@@ -74,16 +74,15 @@ Most hyper parameters were derived from those that could be found in Miguel Mora
 
 The Goal for this agent is to maintain an episodic reward of greater than positive 0.5 for a window of 100 consecutive episodes. The environment is said to be solved with respect to the episode marking the start of the 100 episode window.
 
-With the current seed and hyperparameters, the most recent model.pth learns to solve the task in 143 episodes. See the above plot to see the window of episodes where the 100-episode rolling average score surpassed 30.0.
+With the current seed and hyperparameters, the most recent policy_model.pth and state_value.pth learns to solve the task in 2700 episodes. See the above plot to see the window of episodes where the 100-episode rolling average score surpassed 30.0.
 
 
 ## Future Work
 
 The model could be improved by exploring the following areas:
+* Properly synchonizing training using methods such as Multi-Actor Critic could be used
 * additional hyperparameters could be explored.
 * additional network architectures could be explored.
-* The asynchonous version of the environment could be explored
-* additional continuous policy gradient based agents could be used (SAC, DDPG, PPO, and/or D4PG).
 * a deep dive into the environment observation space could be done to gain further understanding.
     * For instance, after recording the state space, some parameters seem to not change
 * a deep dive into agent score variance with respect to different hyper parameters.
